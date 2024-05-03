@@ -1,0 +1,14 @@
+requests==2.30.0
+beautifulsoup4
+python-dateutil
+selenium
+colorama
+fake-useragent
+azure-storage-blob
+psycopg2
+psycopg2-binary
+psutil
+seaborn
+pandas
+scikit-learn
+joblib

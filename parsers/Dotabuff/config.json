@@ -1,0 +1,9 @@
+{
+  "request_sleep_time_seconds": 20,
+  "request_sleep_time_seconds_threshold": 60,
+  "sleep_time_final_retry_minutes": 30,
+  "request_sleep_time_q": 1.15,
+  "use_selenium": true,
+  "selenium_browser": "firefox",
+  "request_max_retries": 10
+}
