@@ -6,7 +6,7 @@ from datetime import datetime
 import sys
 
 
-colorama.init(convert=True)
+colorama.init(convert=False)
 
 
 def global_await_exit_action():
@@ -132,13 +132,18 @@ class MessageType(Enum):
 	WARNING = 'Warning'
 	NOTIFICATION = 'Notification'
 	SUCCESS = 'Success'
+	INFO = 'Info'
 
 
 class PrintHelper:
-	def __init__(self, write_to_log):
+	def __init__(self, write_to_log, write_to_console = True):
 		self._write_log = write_to_log
+		self._write_to_console = write_to_console
 
 	def print_message(self, message_type, message):
+		if not self._write_to_console:
+			return
+
 		message_type = MessageType(message_type)
 
 		if message_type == MessageType.ERROR:
@@ -149,6 +154,8 @@ class PrintHelper:
 			self.__print_notification(message)
 		elif message_type == MessageType.SUCCESS:
 			self.__print_success(message)
+		elif message_type == MessageType.INFO:
+			self.__print_info(message)
 
 		if self._write_log:
 			self.print_to_log_file(message, message_type.value)
@@ -168,6 +175,10 @@ class PrintHelper:
 	@staticmethod
 	def __print_success(message):
 		print(f'\n{Fore.LIGHTGREEN_EX} {message} {Style.RESET_ALL}\n')
+
+	@staticmethod
+	def __print_info(message):
+		print(message)
 
 	@staticmethod
 	def print_to_log_file(message, message_type):

@@ -1,0 +1,17 @@
+[
+    {
+        "player_id": 176471500,
+        "hero_id": 88,
+        "player_side": "Radiant",
+        "player_match_rank_initial": "Crusader I"
+    },
+    {"player_id": 185525990, "hero_id": 72, "player_side": "Radiant", "player_match_rank_initial": "Crusader V"},
+    {"player_id": 163547051, "hero_id": 138, "player_side": "Radiant", "player_match_rank_initial": "Archon III"},
+    {"player_id": 130602231, "hero_id": 42, "player_side": "Radiant", "player_match_rank_initial": "Crusader V"},
+    {"player_id": 149784810, "hero_id": 14, "player_side": "Radiant", "player_match_rank_initial": "Archon II"},
+    {"player_id": 398727027, "hero_id": 119, "player_side": "Dire", "player_match_rank_initial": "Crusader IV"},
+    {"player_id": 447198251, "hero_id": 47, "player_side": "Dire", "player_match_rank_initial": "Archon I"},
+    {"player_id": 174921323, "hero_id": 67, "player_side": "Dire", "player_match_rank_initial": "Legend V"},
+    {"player_id": 316845176, "hero_id": 75, "player_side": "Dire", "player_match_rank_initial": "Crusader III"},
+    {"player_id": 296365275, "hero_id": 29, "player_side": "Dire", "player_match_rank_initial": "Guardian II"}
+]

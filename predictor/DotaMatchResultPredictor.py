@@ -3,10 +3,11 @@ import json
 import pandas as pd
 import requests
 import time
-from utils.common import *
+from utils.common import PrintHelper, safe_divide, ranks_to_mmr, MessageType
 from typing import List
 from joblib import load
 import argparse
+
 
 class PlayerData:
 	def __init__(self, player_id, hero_id, player_side, player_match_rank_initial):
@@ -30,7 +31,8 @@ class RequestManager:
 			retries += 1
 
 			try:
-				print(f'Awaiting {self._pre_request_timeout} seconds as a pre-request timeout')
+				print_helper_global.print_message(MessageType.INFO,
+												  f'Awaiting {self._pre_request_timeout} seconds as a pre-request timeout')
 				time.sleep(self._pre_request_timeout)
 
 				response = requests.get(api_link)
@@ -44,7 +46,8 @@ class RequestManager:
 						time.sleep(60)
 
 				if 'X-Rate-Limit-Remaining-Day' in response.headers:
-					print(f"Requests remaining for today: {response.headers['X-Rate-Limit-Remaining-Day']}/2000")
+					print_helper_global.print_message(MessageType.INFO,
+					f"Requests remaining for today: {response.headers['X-Rate-Limit-Remaining-Day']}/2000")
 
 				if response.status_code == 200:
 					print_helper_global.print_message(MessageType.SUCCESS,
@@ -183,6 +186,8 @@ class ParseManager:
 		for player in players_data:
 			player_match_data_dict = {}
 
+			print(f'Processing playerId: {player.player_id}')
+
 			player_match_data_dict['player_id'] = str(player.player_id)
 			player_match_data_dict['hero_id'] = player.hero_id
 			player_match_data_dict['player_match_rank_initial'] = player.player_match_rank_initial
@@ -260,6 +265,7 @@ class ParseManager:
 					p['player_heroes_pick_confidence_score_enemies'] = player_heroes_pick_confidence_score_enemies
 
 	def process_match(self, players_data):
+		print_helper_mandatory.print_message(MessageType.NOTIFICATION, 'Gathering statistical data.')
 
 		res_dict = {'players': []}
 
@@ -356,6 +362,11 @@ class DataProcessor:
 	def process_data(self, players_data_raw):
 		match_data_raw = self._parse_manager.process_match(players_data_raw)
 
+		print_helper_mandatory.print_message(MessageType.NOTIFICATION, 'Processing data. Applying transmutations...')
+
+		if not match_data_raw:
+			raise Exception("Failed gathering players' data")
+
 		df = pd.DataFrame(match_data_raw['players'])
 		df = df.drop(columns=['player_heroes'])
 
@@ -427,6 +438,8 @@ class MatchResultPredictor:
 	def predict(self, raw_data):
 		data_dire, data_radiant = self._data_processor.process_data(raw_data)
 
+		print_helper_mandatory.print_message(MessageType.NOTIFICATION, 'Evaluating probabilities...')
+
 		res_rf_dire = self._rf_model.predict_proba(data_dire)[0]
 		res_lr_dire = self._lr_model.predict_proba(data_dire)[0]
 
@@ -434,17 +447,20 @@ class MatchResultPredictor:
 		res_lr_radiant = self._lr_model.predict_proba(data_radiant)[0]
 
 		radiant_win_prediction_perc = 100 * (sum([res_rf_dire[0], res_lr_dire[0], res_rf_radiant[1], res_lr_radiant[1]]) / 4)
+		output_class = radiant_win_prediction_perc > 50.0
+		output_confidence_score = radiant_win_prediction_perc if output_class else 100 - radiant_win_prediction_perc
 
-		return [radiant_win_prediction_perc > 50.0, radiant_win_prediction_perc]
+		return [output_class, round(output_confidence_score, 4)]
 
 
-parser = argparse.ArgumentParser(description='Takes string representing a full filepath')
-parser.add_argument('--filepath', type=str, help='Path to .json file that contains match data.')
+with open('predictor_config.json', 'r', encoding='utf-8') as f:
+	config = json.load(f)
 
-args = parser.parse_args()
+filepath = config['filepath']
+debug_enabled = config['enable_debug']
 
-filepath = args.filepath
-print_helper_global = PrintHelper(False)
+print_helper_global = PrintHelper(False, debug_enabled)
+print_helper_mandatory = PrintHelper(False, True)
 
 try:
 	with open(filepath, 'r', encoding='utf-8') as f:
@@ -456,6 +472,6 @@ try:
 
 	is_radiant_win, radiant_win_perc = match_predictor.predict(players_data)
 
-	print_helper_global.print_message(MessageType.SUCCESS, f'RadiantWin: {is_radiant_win}. Confidence: {radiant_win_perc}')
+	print_helper_mandatory.print_message(MessageType.SUCCESS, f'RadiantWin: {is_radiant_win}. Confidence: {radiant_win_perc}%')
 except Exception as e:
-	print_helper_global.print_message(MessageType.ERROR, f'Failed with unexpected error: {e}')
+	print_helper_mandatory.print_message(MessageType.ERROR, f'Processing failed with error: {e}')
