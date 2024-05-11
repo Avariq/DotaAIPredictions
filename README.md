@@ -1,5 +1,5 @@
 # DotaAIPredictions
-National University of Lviv Polytechnic - Bachelor's degreefinal work.
+National University of Lviv Polytechnic - Bachelor's degree final work.
 
 ## Init the Project
 First off, make sure to build your virtual environment containing all dependencies listed in [requirements file](https://github.com/Avariq/DotaAIPredictions/blob/0f2237fa1a7b28ce98e1f7e1e3885a6b16b52080/requirements.txt)
